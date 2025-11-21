@@ -12,6 +12,27 @@ It:
 
 The result is a scene ready to export to **glTF/GLB** and use in engines such as Babylon.js or Three.js, with baked lighting stored as `occlusionTexture` while base color / albedo remains editable at runtime.
 
+<table>
+  <tr>
+    <td align="center">
+      <img src="assets/img/original.png" alt="Before baking" width="400"><br>
+      <sub><b>Before</b> –  Exported glTF without baked occlusion map</sub>
+    </td>
+    <td align="center">
+      <img src="assets/img/baked.png" alt="After baking" width="400"><br>
+      <sub><b>After</b> – Exported glTF using <b>blender_gltf_baker</b></sub>
+    </td>
+  </tr>
+</table>
+
+Once the bake is done:
+- No runtime lights are required after baking – all lighting is stored in the texture.
+- Mesh shadows don’t need to be enabled, since shadow information is already baked.
+- The exported glTF is lightweight and cheap to render, even on low-end hardware.
+- You can bake scenes with many lights and complex shadows without impacting runtime performance.
+- Ideal for static lighting setups: consistent look across engines and no shadow flickering.
+- Reduces draw calls and shader complexity compared to using multiple dynamic lights.
+
 ---
 
 ## Compatibility
@@ -51,7 +72,7 @@ LIGHTMAP_BAKE_USE_DIRECT = True
 LIGHTMAP_BAKE_USE_INDIRECT = True
 LIGHTMAP_BAKE_USE_COLOR = False
 
-
+```
 Overview of the most relevant ones:
 
 - `LIGHTMAP_OUTPUT_DIR`  
@@ -80,7 +101,7 @@ Overview of the most relevant ones:
   By default color is disabled, so the resulting lightmap encodes only lighting intensity.
 
 ---
-```
+
 
 ## Usage
 
