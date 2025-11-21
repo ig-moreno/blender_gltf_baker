@@ -2,6 +2,17 @@ import bpy
 import os
 import time
 
+LIGHTMAP_OUTPUT_DIR = "/tmp/lightmaps"
+LIGHTMAP_IMG_SIZE = 256
+LIGHTMAP_UVMAP_NAME = "LM_Lightmap"
+LIGHTMAP_IMAGE_PREFIX = "LM_"
+LIGHTMAP_SMART_ANGLE_LIMIT = 66
+LIGHTMAP_SMART_ISLAND_MARGIN = 0.02
+LIGHTMAP_BAKE_MARGIN = 4
+LIGHTMAP_BAKE_USE_DIRECT = True
+LIGHTMAP_BAKE_USE_INDIRECT = True
+LIGHTMAP_BAKE_USE_COLOR = False
+
 
 # ============================================
 #   Activate glTF 2.0 addon
@@ -41,7 +52,7 @@ def _ensure_gltf_material_output_group():
 # 1) Create lightmap UVs WITHOUT touching the existing UVs
 # ============================================
 
-def _create_lightmap_uv(obj, uvmap_name="LM_Lightmap"):
+def _create_lightmap_uv(obj, uvmap_name=LIGHTMAP_UVMAP_NAME):
     """
     - Does NOT apply transformations.
     - ALWAYS creates a new UV map (doesn't reuse any).
@@ -68,7 +79,7 @@ def _create_lightmap_uv(obj, uvmap_name="LM_Lightmap"):
         if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.uv.smart_project(angle_limit=66, island_margin=0.02)
+        bpy.ops.uv.smart_project(angle_limit=LIGHTMAP_SMART_ANGLE_LIMIT, island_margin=LIGHTMAP_SMART_ISLAND_MARGIN)
         bpy.ops.object.mode_set(mode='OBJECT')
 
     original_uv = mesh.uv_layers.active
@@ -84,7 +95,7 @@ def _create_lightmap_uv(obj, uvmap_name="LM_Lightmap"):
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(angle_limit=66, island_margin=0.02)
+    bpy.ops.uv.smart_project(angle_limit=LIGHTMAP_SMART_ANGLE_LIMIT, island_margin=LIGHTMAP_SMART_ISLAND_MARGIN)
     bpy.ops.object.mode_set(mode='OBJECT')
 
     mesh.uv_layers.active = mesh.uv_layers[original_uv_name]
@@ -96,7 +107,7 @@ def _create_lightmap_uv(obj, uvmap_name="LM_Lightmap"):
 # 2) BAKE on the lightmap UV
 # ============================================
 
-def _bake_lightmap_for_object(obj, output_dir, img_size, image_prefix, uvmap_name="LM_Lightmap"):
+def _bake_lightmap_for_object(obj, output_dir, img_size, image_prefix, uvmap_name=LIGHTMAP_UVMAP_NAME):
     """
     - Creates a new lightmap UV.
     - Bakes diffuse lighting (without color) using that UV.
@@ -123,11 +134,11 @@ def _bake_lightmap_for_object(obj, output_dir, img_size, image_prefix, uvmap_nam
     # Ajustes de bake
     scene.render.engine = 'CYCLES'
     scene.render.bake.use_selected_to_active = False
-    scene.render.bake.margin = 4
+    scene.render.bake.margin = LIGHTMAP_BAKE_MARGIN
     scene.render.bake.use_clear = True
-    scene.render.bake.use_pass_direct = True
-    scene.render.bake.use_pass_indirect = True
-    scene.render.bake.use_pass_color = False 
+    scene.render.bake.use_pass_direct = LIGHTMAP_BAKE_USE_DIRECT
+    scene.render.bake.use_pass_indirect = LIGHTMAP_BAKE_USE_INDIRECT
+    scene.render.bake.use_pass_color = LIGHTMAP_BAKE_USE_COLOR
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -289,10 +300,10 @@ def _connect_lightmap_occlusion_for_object(obj, lm_image, gltf_group, lm_uv_name
 # ============================================
 
 def bake_and_connect_lightmap_occlusion_all_safe(
-    output_dir="/tmp/lightmaps",
-    img_size=256,
-    uvmap_name="LM_Lightmap",
-    image_prefix="LM_",
+    output_dir=LIGHTMAP_OUTPUT_DIR,
+    img_size=LIGHTMAP_IMG_SIZE,
+    uvmap_name=LIGHTMAP_UVMAP_NAME,
+    image_prefix=LIGHTMAP_IMAGE_PREFIX,
 ):
     """
     For ALL meshes in the scene:
